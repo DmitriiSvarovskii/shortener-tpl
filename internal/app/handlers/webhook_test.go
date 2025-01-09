@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/services"
+	"github.com/go-chi/chi/v5"
 )
 
 // MockRepository имитирует поведение хранилища.
@@ -26,19 +27,28 @@ func (m *MockRepository) Get(key string) (string, bool) {
 	val, exists := m.data[key]
 	return val, exists
 }
+
+func setupRouter(handler *Handler) *chi.Mux {
+	r := chi.NewRouter()
+	r.Post("/", handler.CreateShortURLHandler)
+	r.Get("/{shortURL}", handler.GetOriginalURLHandler)
+	return r
+}
+
 func TestCreateShortURLHandler(t *testing.T) {
 	// Создаём мок-хранилище и сервис
 	mockRepo := NewMockRepository()
 	service := services.NewShortenerService(mockRepo)
 	handler := NewHandler(service)
+	router := setupRouter(handler)
 
 	// Создаём HTTP-запрос
-	body := strings.NewReader("http://example.com")
+	body := strings.NewReader("https://practicum.yandex.ru/")
 	req := httptest.NewRequest(http.MethodPost, "/", body)
 	w := httptest.NewRecorder()
 
 	// Выполняем запрос
-	handler.CreateShortURLHandler(w, req)
+	router.ServeHTTP(w, req)
 
 	// Проверяем результат
 	resp := w.Result()
@@ -59,14 +69,15 @@ func TestGetOriginalURLHandler(t *testing.T) {
 	mockRepo := NewMockRepository()
 	service := services.NewShortenerService(mockRepo)
 	handler := NewHandler(service)
+	router := setupRouter(handler)
 
 	// Добавляем значение в хранилище
-	shortURL := service.GenerateShortURL("http://example.com")
+	shortURL := service.GenerateShortURL("https://practicum.yandex.ru/")
 
 	// Случай, когда ключ существует
 	req := httptest.NewRequest(http.MethodGet, "/"+shortURL, nil)
 	w := httptest.NewRecorder()
-	handler.GetOriginalURLHandler(w, req)
+	router.ServeHTTP(w, req)
 
 	resp := w.Result()
 	defer resp.Body.Close()
@@ -76,14 +87,14 @@ func TestGetOriginalURLHandler(t *testing.T) {
 	}
 
 	location := resp.Header.Get("Location")
-	if location != "http://example.com" {
-		t.Errorf("expected location %q, got %q", "http://example.com", location)
+	if location != "https://practicum.yandex.ru/" {
+		t.Errorf("expected location %q, got %q", "https://practicum.yandex.ru/", location)
 	}
 
 	// Случай, когда ключ не найден
 	req = httptest.NewRequest(http.MethodGet, "/nonexistentKey", nil)
 	w = httptest.NewRecorder()
-	handler.Webhook(w, req)
+	router.ServeHTTP(w, req)
 
 	resp = w.Result()
 	defer resp.Body.Close()
