@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/config"
 )
 
 // TestServer_Run тестирует запуск сервера и обработку маршрутов.
@@ -30,9 +32,10 @@ func TestServer_Run(t *testing.T) {
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("expected status %d, got %d", http.StatusCreated, resp.StatusCode)
 		}
+		baseURL := "http://localhost" + config.Config.Port + "/"
 
 		responseBody, _ := io.ReadAll(resp.Body)
-		if !strings.Contains(string(responseBody), "http://localhost:8080/") {
+		if !strings.Contains(string(responseBody), baseURL) {
 			t.Errorf("expected response to contain base URL, got %q", string(responseBody))
 		}
 	})
@@ -48,7 +51,8 @@ func TestServer_Run(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 		responseBody, _ := io.ReadAll(resp.Body)
-		shortURL := strings.TrimPrefix(string(responseBody), "http://localhost:8080/")
+		baseURL := "http://localhost" + config.Config.Port + "/"
+		shortURL := strings.TrimPrefix(string(responseBody), baseURL)
 
 		// Случай, когда ключ существует
 		req = httptest.NewRequest(http.MethodGet, "/"+shortURL, nil)
