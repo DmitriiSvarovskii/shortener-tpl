@@ -2,9 +2,11 @@ package server
 
 import (
 	"net/http"
+
 	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/handlers"
-	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/storage"
 	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/services"
+	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/storage"
+	"github.com/go-chi/chi/v5"
 )
 
 type Server struct {
@@ -16,12 +18,18 @@ func NewServer() *Server {
 	service := services.NewShortenerService(repo)
 	handler := handlers.NewHandler(service)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", handler.Webhook)
+	r := chi.NewRouter()
+
+	r.Get("/{shortURL}", handler.GetOriginalURLHandler)
+	r.Post("/", handler.CreateShortURLHandler)
+	r.MethodNotAllowed(handler.MethodNotAllowedHandle)
+
+	// mux := http.NewServeMux()
+	// mux.HandleFunc("/", handler.Webhook)
 
 	return &Server{
 		httpServer: &http.Server{
-			Handler: mux,
+			Handler: r,
 		},
 	}
 }

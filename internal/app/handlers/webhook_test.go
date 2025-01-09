@@ -26,7 +26,7 @@ func (m *MockRepository) Get(key string) (string, bool) {
 	val, exists := m.data[key]
 	return val, exists
 }
-func TestWebhook_POST(t *testing.T) {
+func TestCreateShortURLHandler(t *testing.T) {
 	// Создаём мок-хранилище и сервис
 	mockRepo := NewMockRepository()
 	service := services.NewShortenerService(mockRepo)
@@ -38,7 +38,7 @@ func TestWebhook_POST(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Выполняем запрос
-	handler.Webhook(w, req)
+	handler.CreateShortURLHandler(w, req)
 
 	// Проверяем результат
 	resp := w.Result()
@@ -54,7 +54,7 @@ func TestWebhook_POST(t *testing.T) {
 	}
 }
 
-func TestWebhook_GET(t *testing.T) {
+func TestGetOriginalURLHandler(t *testing.T) {
 	// Создаём мок-хранилище и сервис
 	mockRepo := NewMockRepository()
 	service := services.NewShortenerService(mockRepo)
@@ -66,7 +66,7 @@ func TestWebhook_GET(t *testing.T) {
 	// Случай, когда ключ существует
 	req := httptest.NewRequest(http.MethodGet, "/"+shortURL, nil)
 	w := httptest.NewRecorder()
-	handler.Webhook(w, req)
+	handler.GetOriginalURLHandler(w, req)
 
 	resp := w.Result()
 	defer resp.Body.Close()
