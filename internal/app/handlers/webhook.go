@@ -12,10 +12,11 @@ import (
 
 type Handler struct {
 	service *services.ShortenerService
+	cfg     *config.AppConfig
 }
 
-func NewHandler(service *services.ShortenerService) *Handler {
-	return &Handler{service: service}
+func NewHandler(service *services.ShortenerService, cfg *config.AppConfig) *Handler {
+	return &Handler{service: service, cfg: cfg}
 }
 
 func (h *Handler) CreateShortURLHandler(rw http.ResponseWriter, r *http.Request) {
@@ -24,11 +25,13 @@ func (h *Handler) CreateShortURLHandler(rw http.ResponseWriter, r *http.Request)
 		http.Error(rw, "unable to read body", http.StatusInternalServerError)
 		return
 	}
-	
-	cfg := &config.AppConfig{}
+
+	// Генерация короткого URL
 	key := h.service.GenerateShortURL(string(body))
+
+	// Возвращаем полный URL
 	rw.WriteHeader(http.StatusCreated)
-	rw.Write([]byte(cfg.ServiceURL + "/" + key))
+	rw.Write([]byte(h.cfg.ServiceURL + "/" + key)) // Используем правильный базовый URL из конфигурации
 }
 
 func (h *Handler) GetOriginalURLHandler(rw http.ResponseWriter, r *http.Request) {
@@ -48,11 +51,8 @@ func (h *Handler) GetOriginalURLHandler(rw http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handler) MethodNotAllowedHandle(rw http.ResponseWriter, r *http.Request) {
-	// Логируем метод и путь запроса
 	fmt.Printf("Method not allowed: %s %s\n", r.Method, r.URL.Path)
-
-	// Формируем пользовательское сообщение об ошибке
 	responseMessage := fmt.Sprintf("The method '%s' is not allowed for path '%s'.", r.Method, r.URL.Path)
-	rw.WriteHeader(http.StatusMethodNotAllowed) // Устанавливаем статус 405
+	rw.WriteHeader(http.StatusMethodNotAllowed)
 	io.WriteString(rw, responseMessage)
 }

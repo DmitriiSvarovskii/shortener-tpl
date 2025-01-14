@@ -6,10 +6,14 @@ import (
 )
 
 func main() {
+	// Загружаем конфигурацию
 	cfg := config.LoadConfig()
-	srv := server.NewServer()
 
-	if err := srv.Run(cfg.ServiceURL); err != nil {
+	// Создаём сервер с передачей конфигурации
+	srv := server.NewServer(cfg)
+
+	// Запускаем сервер
+	if err := srv.Run(); err != nil {
 		panic(err)
 	}
 }

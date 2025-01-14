@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/config"
 	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/handlers"
 	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/services"
 	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/storage"
@@ -13,10 +14,10 @@ type Server struct {
 	httpServer *http.Server
 }
 
-func NewServer() *Server {
+func NewServer(cfg *config.AppConfig) *Server {
 	repo := storage.NewMemoryRepository()
 	service := services.NewShortenerService(repo)
-	handler := handlers.NewHandler(service)
+	handler := handlers.NewHandler(service, cfg) // Передаём конфигурацию в обработчик
 
 	r := chi.NewRouter()
 
@@ -26,12 +27,12 @@ func NewServer() *Server {
 
 	return &Server{
 		httpServer: &http.Server{
+			Addr:    cfg.ServiceURL, // Используем адрес из конфигурации
 			Handler: r,
 		},
 	}
 }
 
-func (s *Server) Run(addr string) error {
-	s.httpServer.Addr = addr
+func (s *Server) Run() error {
 	return s.httpServer.ListenAndServe()
 }

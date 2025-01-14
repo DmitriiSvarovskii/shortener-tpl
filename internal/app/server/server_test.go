@@ -12,21 +12,19 @@ import (
 
 // TestServer_Run тестирует запуск сервера и обработку маршрутов.
 func TestServer_Run(t *testing.T) {
-	// Создаём сервер
+	cfg := &config.AppConfig{
+		ServiceURL: "http://localhost:8888",
+	}
 
-	s := NewServer()
+	s := NewServer(cfg)
 
-	// Тестируем маршрут POST
 	t.Run("POST /", func(t *testing.T) {
-		// Создаём HTTP-запрос
 		body := strings.NewReader("https://practicum.yandex.ru/")
 		req := httptest.NewRequest(http.MethodPost, "/", body)
 		w := httptest.NewRecorder()
 
-		// Выполняем запрос
 		s.httpServer.Handler.ServeHTTP(w, req)
 
-		// Проверяем результат
 		resp := w.Result()
 		defer resp.Body.Close()
 
@@ -34,17 +32,13 @@ func TestServer_Run(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusCreated, resp.StatusCode)
 		}
 
-		cfg := &config.AppConfig{}
-
 		responseBody, _ := io.ReadAll(resp.Body)
 		if !strings.Contains(string(responseBody), cfg.ServiceURL) {
 			t.Errorf("expected response to contain base URL, got %q", string(responseBody))
 		}
 	})
 
-	// Тестируем маршрут GET
 	t.Run("GET /{key}", func(t *testing.T) {
-		// Добавляем значение через POST
 		body := strings.NewReader("https://practicum.yandex.ru/")
 		req := httptest.NewRequest(http.MethodPost, "/", body)
 		w := httptest.NewRecorder()
@@ -54,11 +48,8 @@ func TestServer_Run(t *testing.T) {
 		defer resp.Body.Close()
 		responseBody, _ := io.ReadAll(resp.Body)
 
-		cfg := config.LoadConfig()
-
 		shortURL := strings.TrimPrefix(string(responseBody), cfg.ServiceURL)
 
-		// Случай, когда ключ существует
 		req = httptest.NewRequest(http.MethodGet, shortURL, nil)
 		w = httptest.NewRecorder()
 		s.httpServer.Handler.ServeHTTP(w, req)
@@ -75,7 +66,6 @@ func TestServer_Run(t *testing.T) {
 			t.Errorf("expected location %q, got %q", "https://practicum.yandex.ru/", location)
 		}
 
-		// Случай, когда ключ не найден
 		req = httptest.NewRequest(http.MethodGet, "/nonexistentKey", nil)
 		w = httptest.NewRecorder()
 		s.httpServer.Handler.ServeHTTP(w, req)
