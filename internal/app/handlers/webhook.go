@@ -24,12 +24,12 @@ func (h *Handler) CreateShortURLHandler(rw http.ResponseWriter, r *http.Request)
 		http.Error(rw, "unable to read body", http.StatusInternalServerError)
 		return
 	}
-
-	cfg := config.LoadConfig()
-
+	
+	// cfg := config.LoadConfig()
+	cfg := &config.AppConfig{}
 	key := h.service.GenerateShortURL(string(body))
 	rw.WriteHeader(http.StatusCreated)
-	rw.Write([]byte(cfg.ServiceAddr() + "/" + key))
+	rw.Write([]byte(cfg.ServiceURL + "/" + key))
 }
 
 func (h *Handler) GetOriginalURLHandler(rw http.ResponseWriter, r *http.Request) {

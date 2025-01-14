@@ -13,6 +13,7 @@ import (
 // TestServer_Run тестирует запуск сервера и обработку маршрутов.
 func TestServer_Run(t *testing.T) {
 	// Создаём сервер
+
 	s := NewServer()
 
 	// Тестируем маршрут POST
@@ -33,10 +34,10 @@ func TestServer_Run(t *testing.T) {
 			t.Errorf("expected status %d, got %d", http.StatusCreated, resp.StatusCode)
 		}
 
-		cfg := config.LoadConfig()
+		cfg := &config.AppConfig{}
 
 		responseBody, _ := io.ReadAll(resp.Body)
-		if !strings.Contains(string(responseBody), cfg.ServiceAddr()) {
+		if !strings.Contains(string(responseBody), cfg.ServiceURL) {
 			t.Errorf("expected response to contain base URL, got %q", string(responseBody))
 		}
 	})
@@ -55,7 +56,7 @@ func TestServer_Run(t *testing.T) {
 
 		cfg := config.LoadConfig()
 
-		shortURL := strings.TrimPrefix(string(responseBody), cfg.ServiceAddr())
+		shortURL := strings.TrimPrefix(string(responseBody), cfg.ServiceURL)
 
 		// Случай, когда ключ существует
 		req = httptest.NewRequest(http.MethodGet, shortURL, nil)

@@ -40,6 +40,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 	// Создаём мок-хранилище и сервис
 	mockRepo := NewMockRepository()
 	service := services.NewShortenerService(mockRepo)
+
 	handler := NewHandler(service)
 	router := setupRouter(handler)
 
@@ -59,11 +60,11 @@ func TestCreateShortURLHandler(t *testing.T) {
 		t.Errorf("expected status %d, got %d", http.StatusCreated, resp.StatusCode)
 	}
 
-	cfg := config.LoadConfig()
+	cfg := &config.AppConfig{}
 
 	responseBody := w.Body.String()
 
-	if !strings.Contains(responseBody, cfg.ServiceAddr()) {
+	if !strings.Contains(responseBody, cfg.ServiceURL) {
 		t.Errorf("expected response to contain base URL, got %q", responseBody)
 	}
 }
