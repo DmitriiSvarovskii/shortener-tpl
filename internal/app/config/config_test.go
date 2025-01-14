@@ -6,6 +6,9 @@ import (
 )
 
 func TestLoadConfig_DefaultValues(t *testing.T) {
+	os.Unsetenv("SERVICE_URL")
+	os.Unsetenv("BASE_SHORTENER_URL")
+
 	cfg := LoadConfig()
 
 	if cfg.ServiceURL != "localhost:8080" {
