@@ -10,7 +10,7 @@ type AppConfig struct {
 }
 
 func LoadConfig() *AppConfig {
-	address := flag.String("a", "localhost:8888", "Адрес запуска HTTP-сервера")
+	address := flag.String("a", "localhost:8080", "Адрес запуска HTTP-сервера")
 	baseURL := flag.String("b", "http://localhost:8888", "Базовый адрес сокращённых URL")
 
 	// Парсим флаги
