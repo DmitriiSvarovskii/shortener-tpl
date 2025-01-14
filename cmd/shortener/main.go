@@ -57,9 +57,6 @@ func webhook(w http.ResponseWriter, r *http.Request) {
 
 var memoryURL = make(map[string]string)
 
-// func redirect(w http.ResponseWriter, r *http.Request, url string) {
-// 	http.Redirect(w, r, url, http.StatusMovedPermanently)
-// }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
