@@ -14,7 +14,7 @@ func LoadConfig() *AppConfig {
 	cfg := &AppConfig{}
 	flagSet := flag.NewFlagSet("test", flag.ContinueOnError)
 
-	flagSet.StringVar(&cfg.ServiceURL, "a", "localhost:8080", "base service URL")
+	flagSet.StringVar(&cfg.ServiceURL, "a", "http://localhost:8080", "base service URL")
 	flagSet.StringVar(&cfg.BaseShortenerURL, "b", "http://localhost:8000", "base shortener URL")
 
 	// Игнорируем ошибки от флагов для упрощения тестирования.
