@@ -32,10 +32,11 @@ func TestServer_Run(t *testing.T) {
 		if resp.StatusCode != http.StatusCreated {
 			t.Errorf("expected status %d, got %d", http.StatusCreated, resp.StatusCode)
 		}
-		baseURL := "http://localhost" + config.Config.Port + "/"
+
+		cfg := config.LoadConfig()
 
 		responseBody, _ := io.ReadAll(resp.Body)
-		if !strings.Contains(string(responseBody), baseURL) {
+		if !strings.Contains(string(responseBody), cfg.ServiceAddr()) {
 			t.Errorf("expected response to contain base URL, got %q", string(responseBody))
 		}
 	})
@@ -51,11 +52,13 @@ func TestServer_Run(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 		responseBody, _ := io.ReadAll(resp.Body)
-		baseURL := "http://localhost" + config.Config.Port + "/"
-		shortURL := strings.TrimPrefix(string(responseBody), baseURL)
+
+		cfg := config.LoadConfig()
+
+		shortURL := strings.TrimPrefix(string(responseBody), cfg.ServiceAddr())
 
 		// Случай, когда ключ существует
-		req = httptest.NewRequest(http.MethodGet, "/"+shortURL, nil)
+		req = httptest.NewRequest(http.MethodGet, shortURL, nil)
 		w = httptest.NewRecorder()
 		s.httpServer.Handler.ServeHTTP(w, req)
 

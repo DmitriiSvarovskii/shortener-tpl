@@ -8,13 +8,9 @@ import (
 )
 
 func main() {
-	config.ParseFlags()
+	cfg := config.LoadConfig()
 	srv := server.NewServer()
-	if err := srv.Run(config.Config.Port); err != nil {
+	if err := srv.Run(cfg.ServiceAddr()); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
-	// srv := server.NewServer()
-	// if err := srv.Run("localhost:8080"); err != nil {
-	// 	log.Fatalf("failed to start server: %v", err)
-	// }
 }

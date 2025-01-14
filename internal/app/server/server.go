@@ -20,12 +20,9 @@ func NewServer() *Server {
 
 	r := chi.NewRouter()
 
-	r.Get("/{shortURL}", handler.GetOriginalURLHandler)
 	r.Post("/", handler.CreateShortURLHandler)
+	r.Get("/{shortURL}", handler.GetOriginalURLHandler)
 	r.MethodNotAllowed(handler.MethodNotAllowedHandle)
-
-	// mux := http.NewServeMux()
-	// mux.HandleFunc("/", handler.Webhook)
 
 	return &Server{
 		httpServer: &http.Server{
