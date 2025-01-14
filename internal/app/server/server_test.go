@@ -6,24 +6,25 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/config"
 )
 
 // TestServer_Run тестирует запуск сервера и обработку маршрутов.
 func TestServer_Run(t *testing.T) {
-	// Создаём сервер
-	s := NewServer()
+	cfg := &config.AppConfig{
+		ServiceURL: "http://localhost:8888",
+	}
 
-	// Тестируем маршрут POST
+	s := NewServer(cfg)
+
 	t.Run("POST /", func(t *testing.T) {
-		// Создаём HTTP-запрос
 		body := strings.NewReader("https://practicum.yandex.ru/")
 		req := httptest.NewRequest(http.MethodPost, "/", body)
 		w := httptest.NewRecorder()
 
-		// Выполняем запрос
 		s.httpServer.Handler.ServeHTTP(w, req)
 
-		// Проверяем результат
 		resp := w.Result()
 		defer resp.Body.Close()
 
@@ -32,14 +33,12 @@ func TestServer_Run(t *testing.T) {
 		}
 
 		responseBody, _ := io.ReadAll(resp.Body)
-		if !strings.Contains(string(responseBody), "http://localhost:8080/") {
+		if !strings.Contains(string(responseBody), cfg.ServiceURL) {
 			t.Errorf("expected response to contain base URL, got %q", string(responseBody))
 		}
 	})
 
-	// Тестируем маршрут GET
 	t.Run("GET /{key}", func(t *testing.T) {
-		// Добавляем значение через POST
 		body := strings.NewReader("https://practicum.yandex.ru/")
 		req := httptest.NewRequest(http.MethodPost, "/", body)
 		w := httptest.NewRecorder()
@@ -48,10 +47,10 @@ func TestServer_Run(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 		responseBody, _ := io.ReadAll(resp.Body)
-		shortURL := strings.TrimPrefix(string(responseBody), "http://localhost:8080/")
 
-		// Случай, когда ключ существует
-		req = httptest.NewRequest(http.MethodGet, "/"+shortURL, nil)
+		shortURL := strings.TrimPrefix(string(responseBody), cfg.ServiceURL)
+
+		req = httptest.NewRequest(http.MethodGet, shortURL, nil)
 		w = httptest.NewRecorder()
 		s.httpServer.Handler.ServeHTTP(w, req)
 
@@ -67,7 +66,6 @@ func TestServer_Run(t *testing.T) {
 			t.Errorf("expected location %q, got %q", "https://practicum.yandex.ru/", location)
 		}
 
-		// Случай, когда ключ не найден
 		req = httptest.NewRequest(http.MethodGet, "/nonexistentKey", nil)
 		w = httptest.NewRecorder()
 		s.httpServer.Handler.ServeHTTP(w, req)

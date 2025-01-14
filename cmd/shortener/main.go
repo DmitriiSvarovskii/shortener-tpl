@@ -1,14 +1,19 @@
 package main
 
 import (
-	"log"
-
+	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/config"
 	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/server"
 )
 
 func main() {
-	srv := server.NewServer()
-	if err := srv.Run(":8080"); err != nil {
-		log.Fatalf("failed to start server: %v", err)
+	// Загружаем конфигурацию
+	cfg := config.LoadConfig()
+
+	// Создаём сервер с передачей конфигурации
+	srv := server.NewServer(cfg)
+
+	// Запускаем сервер
+	if err := srv.Run(); err != nil {
+		panic(err)
 	}
 }

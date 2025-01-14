@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/config"
 	"github.com/DmitriiSvarovskii/shortener-tpl.git/internal/app/services"
 	"github.com/go-chi/chi/v5"
 )
@@ -36,13 +38,17 @@ func setupRouter(handler *Handler) *chi.Mux {
 }
 
 func TestCreateShortURLHandler(t *testing.T) {
-	// Создаём мок-хранилище и сервис
 	mockRepo := NewMockRepository()
 	service := services.NewShortenerService(mockRepo)
-	handler := NewHandler(service)
+
+	// Правильная конфигурация
+	cfg := &config.AppConfig{
+		ServiceURL: "http://localhost:8888", // Используйте тот же ServiceURL, что и в обработчике
+	}
+
+	handler := NewHandler(service, cfg)
 	router := setupRouter(handler)
 
-	// Создаём HTTP-запрос
 	body := strings.NewReader("https://practicum.yandex.ru/")
 	req := httptest.NewRequest(http.MethodPost, "/", body)
 	w := httptest.NewRecorder()
@@ -50,31 +56,38 @@ func TestCreateShortURLHandler(t *testing.T) {
 	// Выполняем запрос
 	router.ServeHTTP(w, req)
 
-	// Проверяем результат
+	// Проверяем ответ
 	resp := w.Result()
 	defer resp.Body.Close()
 
+	// Проверка статуса
 	if resp.StatusCode != http.StatusCreated {
 		t.Errorf("expected status %d, got %d", http.StatusCreated, resp.StatusCode)
 	}
 
+	// Получаем тело ответа
 	responseBody := w.Body.String()
-	if !strings.Contains(responseBody, "http://localhost:8080/") {
+	fmt.Println(responseBody)
+
+	// Проверка наличия правильного базового URL
+	if !strings.Contains(responseBody, cfg.ServiceURL) {
 		t.Errorf("expected response to contain base URL, got %q", responseBody)
 	}
 }
 
 func TestGetOriginalURLHandler(t *testing.T) {
-	// Создаём мок-хранилище и сервис
 	mockRepo := NewMockRepository()
 	service := services.NewShortenerService(mockRepo)
-	handler := NewHandler(service)
+
+	cfg := &config.AppConfig{
+		ServiceURL: "http://localhost:8888",
+	}
+
+	handler := NewHandler(service, cfg)
 	router := setupRouter(handler)
 
-	// Добавляем значение в хранилище
 	shortURL := service.GenerateShortURL("https://practicum.yandex.ru/")
 
-	// Случай, когда ключ существует
 	req := httptest.NewRequest(http.MethodGet, "/"+shortURL, nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -91,7 +104,6 @@ func TestGetOriginalURLHandler(t *testing.T) {
 		t.Errorf("expected location %q, got %q", "https://practicum.yandex.ru/", location)
 	}
 
-	// Случай, когда ключ не найден
 	req = httptest.NewRequest(http.MethodGet, "/nonexistentKey", nil)
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)

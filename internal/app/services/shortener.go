@@ -9,6 +9,8 @@ import (
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+const lenURL = 8
+
 // ErrKeyNotFound возвращается, если ключ отсутствует в хранилище.
 var ErrKeyNotFound = errors.New("key not found")
 
@@ -21,7 +23,7 @@ func NewShortenerService(repo storage.Repository) *ShortenerService {
 }
 
 func (s *ShortenerService) GenerateShortURL(value string) string {
-	key := randStr(8)
+	key := randStr(lenURL)
 	s.repo.Save(key, value)
 	return key
 }
