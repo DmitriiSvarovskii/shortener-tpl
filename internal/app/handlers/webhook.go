@@ -25,7 +25,6 @@ func (h *Handler) CreateShortURLHandler(rw http.ResponseWriter, r *http.Request)
 		return
 	}
 	
-	// cfg := config.LoadConfig()
 	cfg := &config.AppConfig{}
 	key := h.service.GenerateShortURL(string(body))
 	rw.WriteHeader(http.StatusCreated)

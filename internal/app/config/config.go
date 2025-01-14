@@ -2,9 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
-	"os"
-	"strings"
 )
 
 type AppConfig struct {
@@ -13,61 +10,20 @@ type AppConfig struct {
 }
 
 func LoadConfig() *AppConfig {
-	cfg := &AppConfig{}
-	flagSet := flag.NewFlagSet("test", flag.ContinueOnError)
+	address := flag.String("a", "localhost:8888", "Адрес запуска HTTP-сервера")
+	baseURL := flag.String("b", "http://localhost:8888", "Базовый адрес сокращённых URL")
 
-	flagSet.StringVar(&cfg.ServiceURL, "a", "http://localhost:8080", "base service URL")
-	flagSet.StringVar(&cfg.BaseShortenerURL, "b", "http://localhost:8000", "base shortener URL")
+	// Парсим флаги
+	flag.Parse()
 
-	// Проверяем, есть ли флаги командной строки
-	if len(os.Args) > 1 && !strings.Contains(os.Args[1], "-test.") {
-		fmt.Println("Command-line arguments:", os.Args)
-		_ = flagSet.Parse(os.Args[1:])
+	// Проверяем корректность BaseURL
+	if *baseURL == "" {
+		panic("BaseURL не может быть пустым")
 	}
 
-	if envServiceURL := os.Getenv("SERVICE_URL"); envServiceURL != "" {
-		cfg.ServiceURL = envServiceURL
+	// Создаём и возвращаем конфигурацию
+	return &AppConfig{
+		ServiceURL:       *address,
+		BaseShortenerURL: *baseURL,
 	}
-	if envBaseShortenerURL := os.Getenv("BASE_SHORTENER_URL"); envBaseShortenerURL != "" {
-		cfg.BaseShortenerURL = envBaseShortenerURL
-	}
-
-	parts := strings.Split(cfg.ServiceURL, "://")
-	if len(parts) > 1 {
-		cfg.ServiceURL = parts[1] // оставляем только хост:порт
-	}
-
-	fmt.Println("SERVICE_URL:", cfg.ServiceURL)
-	fmt.Println("BASE_SHORTENER_URL:", cfg.BaseShortenerURL)
-
-	return cfg
 }
-
-// package config
-
-// import (
-// 	"flag"
-// 	"os"
-// )
-
-// type AppConfig struct {
-// 	ServiceURL       string
-// 	BaseShortenerURL string
-// }
-
-// func LoadConfig() *AppConfig {
-// 	cfg := &AppConfig{}
-
-// 	flag.StringVar(&cfg.ServiceURL, "a", "localhost:8080", "base service URL")
-// 	flag.StringVar(&cfg.BaseShortenerURL, "b", "http://localhost:8000", "base shortener URL")
-// 	flag.Parse()
-
-// 	if envServiceURL := os.Getenv("SERVICE_URL"); envServiceURL != "" {
-// 		cfg.ServiceURL = envServiceURL
-// 	}
-// 	if envBaseShortenerURL := os.Getenv("BASE_SHORTENER_URL"); envBaseShortenerURL != "" {
-// 		cfg.BaseShortenerURL = envBaseShortenerURL
-// 	}
-
-// 	return cfg
-// }
